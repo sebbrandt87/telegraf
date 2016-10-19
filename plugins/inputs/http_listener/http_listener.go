@@ -174,19 +174,16 @@ func (t *HttpListener) serveWrite(res http.ResponseWriter, req *http.Request) {
 	}
 
 	var return400 bool
-	var buf []byte
+	buf := t.pool.get(req.ContentLength)
+	defer func() { t.pool.put(buf) }()
 	bufstart := 0
 	for {
-		if bufstart == 0 {
-			buf = t.pool.get()
-		}
 		n, err := io.ReadFull(body, buf[bufstart:])
 
 		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
 			log.Println("E! " + err.Error())
 			// problem reading the request body
 			badrequest(res)
-			t.pool.put(buf)
 			return
 		}
 
@@ -196,7 +193,6 @@ func (t *HttpListener) serveWrite(res http.ResponseWriter, req *http.Request) {
 				log.Println("E! " + err.Error())
 				return400 = true
 			}
-			t.pool.put(buf)
 			if return400 {
 				badrequest(res)
 			} else {
@@ -211,7 +207,6 @@ func (t *HttpListener) serveWrite(res http.ResponseWriter, req *http.Request) {
 		i := bytes.LastIndexByte(buf, '\n')
 		if i == -1 {
 			// drop any line longer than the max buffer size
-			t.pool.put(buf)
 			newlinei := findnewline(body)
 			log.Printf("E! http_listener received a single line of %d bytes, maximum is %d bytes",
 				MAX_LINE_SIZE+newlinei, MAX_LINE_SIZE)
