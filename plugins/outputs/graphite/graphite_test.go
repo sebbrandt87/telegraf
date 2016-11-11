@@ -90,10 +90,10 @@ func TCPServer(t *testing.T, wg *sync.WaitGroup) {
 	reader := bufio.NewReader(conn)
 	tp := textproto.NewReader(reader)
 	data1, _ := tp.ReadLine()
-	assert.Equal(t, "my.prefix.192_168_0_1.mymeasurement.myfield 3.14 1289430000", data1)
+	assert.Equal(t, "my.prefix.1.0.168.192.mymeasurement.myfield 3.14 1289430000", data1)
 	data2, _ := tp.ReadLine()
-	assert.Equal(t, "my.prefix.192_168_0_1.mymeasurement 3.14 1289430000", data2)
+	assert.Equal(t, "my.prefix.1.0.168.192.mymeasurement 3.14 1289430000", data2)
 	data3, _ := tp.ReadLine()
-	assert.Equal(t, "my.prefix.192_168_0_1.my_measurement 3.14 1289430000", data3)
+	assert.Equal(t, "my.prefix.1.0.168.192.my_measurement 3.14 1289430000", data3)
 	conn.Close()
 }
